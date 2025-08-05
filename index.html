@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horario de Clases Interactivo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        /* Estilos para la vista de cuadrícula (escritorio) */
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: auto repeat(5, 1fr);
+            grid-template-rows: auto repeat(8, 1fr); /* Ajustado para las horas */
+            gap: 4px;
+        }
+        .time-slot {
+            grid-column: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            color: #4a5568;
+            padding: 0 8px;
+        }
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            padding: 12px 0;
+            color: #2d3748;
+        }
+        .class-block {
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .class-block:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Estilos para la vista de lista (móvil) */
+        .mobile-schedule .day-section {
+            margin-bottom: 1.5rem;
+        }
+        .mobile-schedule .day-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .mobile-class-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .mobile-class-item .time {
+            font-weight: 600;
+            width: 7rem; /* Ancho fijo para alinear */
+        }
+        
+        /* Modal (sin cambios significativos) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background-color: #ffffff;
+            margin: 20% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            animation: slide-down 0.5s ease-out;
+        }
+        @keyframes slide-down {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #333;
+        }
+
+        /* Asignación de colores por materia */
+        .bg-alg { background-color: #3b82f6; }
+        .bg-cdif { background-color: #10b981; }
+        .bg-geoa { background-color: #ef4444; }
+        .bg-metprog { background-color: #8b5cf6; }
+        .bg-lei { background-color: #f97316; }
+
+        /* Cabecera de información del alumno */
+        .student-info-header {
+            background: linear-gradient(135deg, #005baa, #003c71);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+
+        <!-- Cabecera con Información del Alumno -->
+        <div class="student-info-header text-center md:text-left">
+            <h1 class="text-2xl md:text-4xl font-bold">Alfredo Ramos Olivan</h1>
+            <p class="text-md md:text-lg mt-2 opacity-90">Matrícula: 2274518</p>
+            <p class="text-md md:text-lg opacity-90">Lic. en Ciencias Computacionales</p>
+            <p class="text-sm md:text-md mt-2 opacity-70">Periodo: Agosto-Diciembre 2025</p>
+        </div>
+
+        <!-- Contenedor del Horario -->
+        <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+            
+            <!-- VISTA DE ESCRITORIO (GRID) - Oculta en móvil -->
+            <div class="hidden md:block">
+                <div class="schedule-grid">
+                    <!-- Fila de encabezados de día -->
+                    <div></div> 
+                    <div class="day-header">Lunes</div>
+                    <div class="day-header">Martes</div>
+                    <div class="day-header">Miércoles</div>
+                    <div class="day-header">Jueves</div>
+                    <div class="day-header">Viernes</div>
+
+                    <!-- Horas -->
+                    <div class="time-slot" style="grid-row: 2 / 4;">11:00</div>
+                    <div class="time-slot" style="grid-row: 4 / 6;">12:00</div>
+                    <div class="time-slot" style="grid-row: 6 / 8;">13:00</div>
+                    <div class="time-slot" style="grid-row: 8 / 10;">14:00</div>
+
+                    <!-- Bloques de Clases -->
+                    <div class="class-block bg-alg" style="grid-column: 2; grid-row: 2 / 4;" onclick="openModal('algModal')"><strong>ALG</strong><span class="text-xs mt-1">11:00-12:00</span></div>
+                    <div class="class-block bg-alg" style="grid-column: 3; grid-row: 2 / 4;" onclick="openModal('algModal')"><strong>ALG</strong><span class="text-xs mt-1">11:00-12:00</span></div>
+                    <div class="class-block bg-alg" style="grid-column: 4; grid-row: 2 / 4;" onclick="openModal('algModal')"><strong>ALG</strong><span class="text-xs mt-1">11:00-12:00</span></div>
+                    <div class="class-block bg-alg" style="grid-column: 5; grid-row: 2 / 4;" onclick="openModal('algModal')"><strong>ALG</strong><span class="text-xs mt-1">11:00-12:00</span></div>
+                    <div class="class-block bg-alg" style="grid-column: 6; grid-row: 2 / 4;" onclick="openModal('algModal')"><strong>ALG</strong><span class="text-xs mt-1">11:00-12:00</span></div>
+
+                    <div class="class-block bg-cdif" style="grid-column: 2; grid-row: 4 / 6;" onclick="openModal('cdifModal')"><strong>CDIF</strong><span class="text-xs mt-1">12:00-13:00</span></div>
+                    <div class="class-block bg-cdif" style="grid-column: 3; grid-row: 4 / 6;" onclick="openModal('cdifModal')"><strong>CDIF</strong><span class="text-xs mt-1">12:00-13:00</span></div>
+                    <div class="class-block bg-cdif" style="grid-column: 4; grid-row: 4 / 6;" onclick="openModal('cdifModal')"><strong>CDIF</strong><span class="text-xs mt-1">12:00-13:00</span></div>
+                    <div class="class-block bg-cdif" style="grid-column: 5; grid-row: 4 / 6;" onclick="openModal('cdifModal')"><strong>CDIF</strong><span class="text-xs mt-1">12:00-13:00</span></div>
+                    <div class="class-block bg-cdif" style="grid-column: 6; grid-row: 4 / 6;" onclick="openModal('cdifModal')"><strong>CDIF</strong><span class="text-xs mt-1">12:00-13:00</span></div>
+
+                    <div class="class-block bg-geoa" style="grid-column: 2; grid-row: 6 / 8;" onclick="openModal('geoaModal')"><strong>GEOA</strong><span class="text-xs mt-1">13:00-14:00</span></div>
+                    <div class="class-block bg-geoa" style="grid-column: 3; grid-row: 6 / 8;" onclick="openModal('geoaModal')"><strong>GEOA</strong><span class="text-xs mt-1">13:00-14:00</span></div>
+                    <div class="class-block bg-geoa" style="grid-column: 4; grid-row: 6 / 8;" onclick="openModal('geoaModal')"><strong>GEOA</strong><span class="text-xs mt-1">13:00-14:00</span></div>
+                    <div class="class-block bg-geoa" style="grid-column: 5; grid-row: 6 / 8;" onclick="openModal('geoaModal')"><strong>GEOA</strong><span class="text-xs mt-1">13:00-14:00</span></div>
+                    <div class="class-block bg-geoa" style="grid-column: 6; grid-row: 6 / 8;" onclick="openModal('geoaModal')"><strong>GEOA</strong><span class="text-xs mt-1">13:00-14:00</span></div>
+
+                    <div class="class-block bg-metprog" style="grid-column: 2; grid-row: 8 / 10;" onclick="openModal('metprogModal')"><strong>METPROG</strong><span class="text-xs mt-1">14:00-15:00</span></div>
+                    <div class="class-block bg-metprog" style="grid-column: 3; grid-row: 8 / 10;" onclick="openModal('metprogModal')"><strong>METPROG</strong><span class="text-xs mt-1">14:00-15:00</span></div>
+                    <div class="class-block bg-metprog" style="grid-column: 4; grid-row: 8 / 10;" onclick="openModal('metprogModal')"><strong>METPROG</strong><span class="text-xs mt-1">14:00-15:00</span></div>
+                    <div class="class-block bg-metprog" style="grid-column: 5; grid-row: 8 / 10;" onclick="openModal('metprogModal')"><strong>METPROG</strong><span class="text-xs mt-1">14:00-15:00</span></div>
+                    <div class="class-block bg-metprog" style="grid-column: 6; grid-row: 8 / 10;" onclick="openModal('metprogModal')"><strong>METPROG</strong><span class="text-xs mt-1">14:00-15:00</span></div>
+                </div>
+            </div>
+
+            <!-- VISTA MÓVIL (LISTA) - Oculta en escritorio -->
+            <div class="md:hidden mobile-schedule">
+                <!-- Lunes a Viernes (se repiten las clases) -->
+                <div class="day-section">
+                    <h3 class="day-title">Todos los días (L-V)</h3>
+                    <div class="mobile-class-item bg-alg" onclick="openModal('algModal')"><span class="time">11:00 - 12:00</span><span>Algoritmos Comp.</span></div>
+                    <div class="mobile-class-item bg-cdif" onclick="openModal('cdifModal')"><span class="time">12:00 - 13:00</span><span>Cálculo Diferencial</span></div>
+                    <div class="mobile-class-item bg-geoa" onclick="openModal('geoaModal')"><span class="time">13:00 - 14:00</span><span>Geometría Analítica</span></div>
+                    <div class="mobile-class-item bg-metprog" onclick="openModal('metprogModal')"><span class="time">14:00 - 15:00</span><span>Metod. Programación</span></div>
+                </div>
+            </div>
+            
+            <!-- Clase en línea (visible en ambas vistas) -->
+            <div class="mt-6">
+                <h3 class="text-xl font-semibold text-gray-700 mb-3">Clases No Escolarizadas</h3>
+                <div class="mobile-class-item bg-lei" onclick="openModal('leiModal')">
+                    <strong class="text-lg">Liderazgo, Emprendimiento e Innovación</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (sin cambios) -->
+    <div id="algModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('algModal')">&times;</span><h2 class="text-2xl font-bold text-blue-500 mb-4">Algoritmos Computacionales</h2><p><strong>Materia:</strong> Algoritmos Computacionales (ALG)</p><p><strong>Horario:</strong> Lunes a Viernes, 11:00 - 12:00</p><p><strong>Salón:</strong> Y07/107</p><p><strong>Grupo:</strong> F-01/CO</p><p><strong>Profesor:</strong> (No especificado)</p></div></div>
+    <div id="cdifModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('cdifModal')">&times;</span><h2 class="text-2xl font-bold text-green-500 mb-4">Cálculo Diferencial</h2><p><strong>Materia:</strong> Cálculo Diferencial (CDIF)</p><p><strong>Horario:</strong> Lunes a Viernes, 12:00 - 13:00</p><p><strong>Salón:</strong> Y07/107</p><p><strong>Grupo:</strong> F-01/CO</p><p><strong>Profesor:</strong> (No especificado)</p></div></div>
+    <div id="geoaModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('geoaModal')">&times;</span><h2 class="text-2xl font-bold text-red-500 mb-4">Geometría Analítica</h2><p><strong>Materia:</strong> Geometría Analítica (GEOA)</p><p><strong>Horario:</strong> Lunes a Viernes, 13:00 - 14:00</p><p><strong>Salón:</strong> Y07/107</p><p><strong>Grupo:</strong> F-01/CO</p><p><strong>Profesor:</strong> (No especificado)</p></div></div>
+    <div id="metprogModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('metprogModal')">&times;</span><h2 class="text-2xl font-bold text-purple-500 mb-4">Metodología de la Programación</h2><p><strong>Materia:</strong> Metodología de la Programación (METPROG)</p><p><strong>Horario:</strong> Lunes a Viernes, 14:00 - 15:00</p><p><strong>Salón:</strong> Y07/107</p><p><strong>Grupo:</strong> F-01/CO</p><p><strong>Profesor:</strong> (No especificado)</p></div></div>
+    <div id="leiModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('leiModal')">&times;</span><h2 class="text-2xl font-bold text-orange-500 mb-4">Liderazgo, Emprendimiento e Innovación</h2><p><strong>Materia:</strong> Liderazgo, Emprendimiento e Innovación (LEI)</p><p><strong>Modalidad:</strong> No Escolarizada (En línea)</p><p><strong>Grupo:</strong> 014</p><p><strong>Profesor:</strong> (No especificado)</p></div></div>
+
+    <script>
+        function openModal(modalId) { document.getElementById(modalId).style.display = "block"; }
+        function closeModal(modalId) { document.getElementById(modalId).style.display = "none"; }
+        window.onclick = function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let i = 0; i < modals.length; i++) {
+                if (event.target == modals[i]) {
+                    modals[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+
