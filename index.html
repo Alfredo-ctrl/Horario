@@ -3,245 +3,348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horario de Clases Interactivo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Feliz Cumpleaños, Mi Niña Bonita</title>
     <style>
+        /* --- Estilos Generales --- */
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Comfortaa:wght@400;700&display=swap');
+
+        :root {
+            --color-fondo: #100018;
+            --color-principal: #e0b0ff;
+            --color-secundario: #c56eff;
+            --color-texto: #f0e6ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
+            background-color: var(--color-fondo);
+            color: var(--color-texto);
+            font-family: 'Comfortaa', cursive;
+            overflow-x: hidden; /* Evita el scroll horizontal */
         }
-        /* Estilos para la vista de cuadrícula (escritorio) */
-        .schedule-grid {
-            display: grid;
-            grid-template-columns: auto repeat(5, 1fr);
-            grid-template-rows: auto repeat(8, 1fr); /* Ajustado para las horas */
-            gap: 4px;
+
+        /* --- Lienzo para Efecto de Partículas --- */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Detrás de todo el contenido */
         }
-        .time-slot {
-            grid-column: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            color: #4a5568;
-            padding: 0 8px;
-        }
-        .day-header {
-            text-align: center;
-            font-weight: 600;
-            padding: 12px 0;
-            color: #2d3748;
-        }
-        .class-block {
-            border-radius: 8px;
-            padding: 12px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
+
+        /* --- Contenedor Principal --- */
+        .container {
             position: relative;
-            overflow: hidden;
+            z-index: 1;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        /* --- Imágenes Decorativas de Kuromi (para el efecto parallax) --- */
+        .kuromi {
+            position: absolute;
+            width: 150px;
+            height: auto;
+            opacity: 0.7;
+            z-index: 0;
+            transition: transform 0.5s ease-out; /* Transición suave para el movimiento */
+        }
+
+        #kuromi1 {
+            top: 10vh;
+            left: 5vw;
+            width: 120px;
+        }
+        #kuromi2 {
+            top: 40vh;
+            right: 8vw;
+            width: 180px;
+            transform: scaleX(-1); /* Volteada */
+        }
+        #kuromi3 {
+            top: 120vh;
+            left: 10vw;
+            width: 100px;
+        }
+        #kuromi4 {
+            top: 180vh;
+            right: 5vw;
+            width: 200px;
+        }
+
+        /* --- Sección del Título --- */
+        header {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            text-align: center;
-        }
-        .class-block:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        
-        /* Estilos para la vista de lista (móvil) */
-        .mobile-schedule .day-section {
-            margin-bottom: 1.5rem;
-        }
-        .mobile-schedule .day-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #1a202c;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 0.5rem;
-        }
-        .mobile-class-item {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            margin-bottom: 0.75rem;
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .mobile-class-item .time {
-            font-weight: 600;
-            width: 7rem; /* Ancho fijo para alinear */
-        }
-        
-        /* Modal (sin cambios significativos) */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
-        }
-        .modal-content {
-            background-color: #ffffff;
-            margin: 20% auto;
-            padding: 30px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            animation: slide-down 0.5s ease-out;
-        }
-        @keyframes slide-down {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        .close-button {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .close-button:hover,
-        .close-button:focus {
-            color: #333;
         }
 
-        /* Asignación de colores por materia */
-        .bg-alg { background-color: #3b82f6; }
-        .bg-cdif { background-color: #10b981; }
-        .bg-geoa { background-color: #ef4444; }
-        .bg-metprog { background-color: #8b5cf6; }
-        .bg-lei { background-color: #f97316; }
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(3rem, 10vw, 6rem); /* Tamaño adaptable */
+            color: var(--color-principal);
+            text-shadow: 0 0 10px var(--color-principal), 0 0 20px var(--color-secundario);
+            animation: fadeInGlow 3s ease-in-out forwards;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            color: var(--color-texto);
+            animation: fadeIn 3s ease-in-out 1s forwards;
+            opacity: 0;
+        }
 
-        /* Cabecera de información del alumno */
-        .student-info-header {
-            background: linear-gradient(135deg, #005baa, #003c71);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
+        .scroll-down {
+            margin-top: 50px;
+            font-size: 1rem;
+            animation: bounce 2s infinite, fadeIn 3s ease-in-out 2s forwards;
+            opacity: 0;
+        }
+
+        /* --- Sección de la Carta --- */
+        .letter-section {
+            padding: 10vh 0;
+            opacity: 0; /* Empieza invisible, JS la mostrará */
+            transform: translateY(50px);
+            transition: opacity 1s, transform 1s;
+        }
+        
+        .letter-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h2 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem;
+            color: var(--color-secundario);
             margin-bottom: 2rem;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
         }
+
+        .letter-section p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        /* --- Corazón al Final --- */
+        .heart {
+            font-size: 4rem;
+            color: var(--color-secundario);
+            animation: beat 1.5s infinite ease-in-out;
+            display: inline-block;
+        }
+
+        /* --- Animaciones --- */
+        @keyframes fadeInGlow {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-20px);
+            }
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        @keyframes beat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body>
 
-    <div class="max-w-7xl mx-auto">
+    <svg width="0" height="0" style="position:absolute;z-index:-1;">
+        <defs>
+            <symbol id="kuromi-svg" viewBox="0 0 48 48">
+                <path fill="#e0b0ff" d="M24,4C12.954,4,4,12.954,4,24s8.954,20,20,20s20-8.954,20-20S35.046,4,24,4z M24,36c-6.627,0-12-5.373-12-12s5.373-12,12-12s12,5.373,12,12S30.627,36,24,36z"/>
+                <path fill="#100018" d="M24,14c-5.523,0-10,4.477-10,10s4.477,10,10,10s10-4.477,10-10S29.523,14,24,14z M24,32c-4.418,0-8-3.582-8-8s3.582-8,8-8s8,3.582,8,8S28.418,32,24,32z"/>
+                <path fill="#e0b0ff" d="M31.2,18.5c-0.6-0.3-1.3-0.2-1.8,0.2l-5.4,5.4l-5.4-5.4c-0.5-0.5-1.2-0.5-1.8-0.2c-0.6,0.3-1,1-1,1.7v10.1c0,0.8,0.7,1.5,1.5,1.5h12.3c0.8,0,1.5-0.7,1.5-1.5V20.2C32.1,19.5,31.7,18.8,31.2,18.5z"/>
+                <path fill="#f0e6ff" d="M14.3,16.8c0-1.8,1.5-3.3,3.3-3.3s3.3,1.5,3.3,3.3s-1.5,3.3-3.3,3.3S14.3,18.6,14.3,16.8z M30.4,16.8c0-1.8,1.5-3.3,3.3-3.3s3.3,1.5,3.3,3.3s-1.5,3.3-3.3,3.3S30.4,18.6,30.4,16.8z"/>
+                <path fill="#f0e6ff" d="M24,30.5c-2.8,0-5-2.2-5-5s2.2-5,5-5s5,2.2,5,5S26.8,30.5,24,30.5z M24,22.5c-1.7,0-3,1.3-3,3s1.3,3,3,3s3-1.3,3-3S25.7,22.5,24,22.5z"/>
+                <path fill="#c56eff" d="M24,10.2c-1.1,0-2,0.9-2,2s0.9,2,2,2s2-0.9,2-2S25.1,10.2,24,10.2z"/>
+            </symbol>
+        </defs>
+    </svg>
 
-        <!-- Cabecera con Información del Alumno -->
-        <div class="student-info-header text-center md:text-left">
-            <h1 class="text-2xl md:text-4xl font-bold">Alfredo Ramos Olivan</h1>
-            <p class="text-md md:text-lg mt-2 opacity-90">Matrícula: 2274518</p>
-            <p class="text-md md:text-lg opacity-90">Lic. en Ciencias Computacionales</p>
-            <p class="text-sm md:text-md mt-2 opacity-70">Periodo: Agosto-Diciembre 2025</p>
-        </div>
+    <canvas id="particle-canvas"></canvas>
 
-        <!-- Contenedor del Horario -->
-        <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
-            
-            <!-- VISTA DE ESCRITORIO (GRID) - Oculta en móvil -->
-            <div class="hidden md:block">
-                <div class="schedule-grid">
-                    <!-- Fila de encabezados de día -->
-                    <div></div> 
-                    <div class="day-header">Lunes</div>
-                    <div class="day-header">Martes</div>
-                    <div class="day-header">Miércoles</div>
-                    <div class="day-header">Jueves</div>
-                    <div class="day-header">Viernes</div>
+    <svg class="kuromi" id="kuromi1"><use href="#kuromi-svg"></use></svg>
+    <svg class="kuromi" id="kuromi2"><use href="#kuromi-svg"></use></svg>
+    <svg class="kuromi" id="kuromi3"><use href="#kuromi-svg"></use></svg>
+    <svg class="kuromi" id="kuromi4"><use href="#kuromi-svg"></use></svg>
 
-                    <!-- Horas -->
-                    <div class="time-slot" style="grid-row: 2 / 4;">11:00</div>
-                    <div class="time-slot" style="grid-row: 4 / 6;">12:00</div>
-                    <div class="time-slot" style="grid-row: 6 / 8;">13:00</div>
-                    <div class="time-slot" style="grid-row: 8 / 10;">14:00</div>
-
-                    <!-- Bloques de Clases -->
-                    <div class="class-block bg-alg" style="grid-column: 2; grid-row: 2 / 4;" onclick="openModal('algModal')"><strong>ALG</strong><span class="text-xs mt-1">11:00-12:00</span></div>
-                    <div class="class-block bg-alg" style="grid-column: 3; grid-row: 2 / 4;" onclick="openModal('algModal')"><strong>ALG</strong><span class="text-xs mt-1">11:00-12:00</span></div>
-                    <div class="class-block bg-alg" style="grid-column: 4; grid-row: 2 / 4;" onclick="openModal('algModal')"><strong>ALG</strong><span class="text-xs mt-1">11:00-12:00</span></div>
-                    <div class="class-block bg-alg" style="grid-column: 5; grid-row: 2 / 4;" onclick="openModal('algModal')"><strong>ALG</strong><span class="text-xs mt-1">11:00-12:00</span></div>
-                    <div class="class-block bg-alg" style="grid-column: 6; grid-row: 2 / 4;" onclick="openModal('algModal')"><strong>ALG</strong><span class="text-xs mt-1">11:00-12:00</span></div>
-
-                    <div class="class-block bg-cdif" style="grid-column: 2; grid-row: 4 / 6;" onclick="openModal('cdifModal')"><strong>CDIF</strong><span class="text-xs mt-1">12:00-13:00</span></div>
-                    <div class="class-block bg-cdif" style="grid-column: 3; grid-row: 4 / 6;" onclick="openModal('cdifModal')"><strong>CDIF</strong><span class="text-xs mt-1">12:00-13:00</span></div>
-                    <div class="class-block bg-cdif" style="grid-column: 4; grid-row: 4 / 6;" onclick="openModal('cdifModal')"><strong>CDIF</strong><span class="text-xs mt-1">12:00-13:00</span></div>
-                    <div class="class-block bg-cdif" style="grid-column: 5; grid-row: 4 / 6;" onclick="openModal('cdifModal')"><strong>CDIF</strong><span class="text-xs mt-1">12:00-13:00</span></div>
-                    <div class="class-block bg-cdif" style="grid-column: 6; grid-row: 4 / 6;" onclick="openModal('cdifModal')"><strong>CDIF</strong><span class="text-xs mt-1">12:00-13:00</span></div>
-
-                    <div class="class-block bg-geoa" style="grid-column: 2; grid-row: 6 / 8;" onclick="openModal('geoaModal')"><strong>GEOA</strong><span class="text-xs mt-1">13:00-14:00</span></div>
-                    <div class="class-block bg-geoa" style="grid-column: 3; grid-row: 6 / 8;" onclick="openModal('geoaModal')"><strong>GEOA</strong><span class="text-xs mt-1">13:00-14:00</span></div>
-                    <div class="class-block bg-geoa" style="grid-column: 4; grid-row: 6 / 8;" onclick="openModal('geoaModal')"><strong>GEOA</strong><span class="text-xs mt-1">13:00-14:00</span></div>
-                    <div class="class-block bg-geoa" style="grid-column: 5; grid-row: 6 / 8;" onclick="openModal('geoaModal')"><strong>GEOA</strong><span class="text-xs mt-1">13:00-14:00</span></div>
-                    <div class="class-block bg-geoa" style="grid-column: 6; grid-row: 6 / 8;" onclick="openModal('geoaModal')"><strong>GEOA</strong><span class="text-xs mt-1">13:00-14:00</span></div>
-
-                    <div class="class-block bg-metprog" style="grid-column: 2; grid-row: 8 / 10;" onclick="openModal('metprogModal')"><strong>METPROG</strong><span class="text-xs mt-1">14:00-15:00</span></div>
-                    <div class="class-block bg-metprog" style="grid-column: 3; grid-row: 8 / 10;" onclick="openModal('metprogModal')"><strong>METPROG</strong><span class="text-xs mt-1">14:00-15:00</span></div>
-                    <div class="class-block bg-metprog" style="grid-column: 4; grid-row: 8 / 10;" onclick="openModal('metprogModal')"><strong>METPROG</strong><span class="text-xs mt-1">14:00-15:00</span></div>
-                    <div class="class-block bg-metprog" style="grid-column: 5; grid-row: 8 / 10;" onclick="openModal('metprogModal')"><strong>METPROG</strong><span class="text-xs mt-1">14:00-15:00</span></div>
-                    <div class="class-block bg-metprog" style="grid-column: 6; grid-row: 8 / 10;" onclick="openModal('metprogModal')"><strong>METPROG</strong><span class="text-xs mt-1">14:00-15:00</span></div>
-                </div>
+    <div class="container">
+        <header>
+            <h1>Feliz Cumpleaños,<br>Mi Niña Bonita</h1>
+            <p>Para la personita más increíble del universo.</p>
+            <div class="scroll-down">
+                Desliza para leer tu carta
+                <br>
+                &#x25BC;
             </div>
+        </header>
 
-            <!-- VISTA MÓVIL (LISTA) - Oculta en escritorio -->
-            <div class="md:hidden mobile-schedule">
-                <!-- Lunes a Viernes (se repiten las clases) -->
-                <div class="day-section">
-                    <h3 class="day-title">Todos los días (L-V)</h3>
-                    <div class="mobile-class-item bg-alg" onclick="openModal('algModal')"><span class="time">11:00 - 12:00</span><span>Algoritmos Comp.</span></div>
-                    <div class="mobile-class-item bg-cdif" onclick="openModal('cdifModal')"><span class="time">12:00 - 13:00</span><span>Cálculo Diferencial</span></div>
-                    <div class="mobile-class-item bg-geoa" onclick="openModal('geoaModal')"><span class="time">13:00 - 14:00</span><span>Geometría Analítica</span></div>
-                    <div class="mobile-class-item bg-metprog" onclick="openModal('metprogModal')"><span class="time">14:00 - 15:00</span><span>Metod. Programación</span></div>
-                </div>
-            </div>
-            
-            <!-- Clase en línea (visible en ambas vistas) -->
-            <div class="mt-6">
-                <h3 class="text-xl font-semibold text-gray-700 mb-3">Clases No Escolarizadas</h3>
-                <div class="mobile-class-item bg-lei" onclick="openModal('leiModal')">
-                    <strong class="text-lg">Liderazgo, Emprendimiento e Innovación</strong>
-                </div>
-            </div>
-        </div>
+        <main class="letter-section">
+            <h2>Una pequeña carta para ti:</h2>
+            <p>
+                ¡Mi amor! Sé que es curiosa la forma de dar una carta, pero quería hacer algo especial y diferente, algo que fuera muy nuestro. Espero de todo corazón que te guste.
+            </p>
+            <p>
+                Me siento inmensamente feliz de que cumplas ya otro añito y, sobre todo, de poder estar contigo en este día tan súper bonito. Cada momento a tu lado es un regalo y celebrar tu vida es el mejor de todos.
+            </p>
+            <p>
+                Y bueno ahora sí no me puedes denunciar JAJAJAJAJJ Por fin somos de la misma edad (al menos por un tiempo),  JAAJJAAJ.
+            </p>
+            <p>
+                Hablando en serio, te amo demasiado mi niña bonita. Eres lo más preciado que he podido tener a día de hoy. Has llegado a mi vida para llenarla de colores, de risas y de una felicidad que no sabía que existía. eres completamente mi alegría y mi lugar seguro.
+            </p>
+            <p>
+                Te amo como no tienes una idea. Espero con toda mi alma poder seguir estando junto a ti cuando cumplas muchos más años, viéndote alcanzar tus sueños, celebrando tus victorias y apoyándote en cada paso. Eres simplemente increíble.
+            </p>
+            <p>
+                Feliz, feliz, feliz cumpleaños, amorcito.
+                <br>
+                Te amo con todo mi corazón.
+                <br>
+                <span class="heart">&lt;3</span>
+            </p>
+        </main>
     </div>
 
-    <!-- Modals (sin cambios) -->
-    <div id="algModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('algModal')">&times;</span><h2 class="text-2xl font-bold text-blue-500 mb-4">Algoritmos Computacionales</h2><p><strong>Materia:</strong> Algoritmos Computacionales (ALG)</p><p><strong>Horario:</strong> Lunes a Viernes, 11:00 - 12:00</p><p><strong>Salón:</strong> Y07/107</p><p><strong>Grupo:</strong> F-01/CO</p><p><strong>Profesor:</strong> (No especificado)</p></div></div>
-    <div id="cdifModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('cdifModal')">&times;</span><h2 class="text-2xl font-bold text-green-500 mb-4">Cálculo Diferencial</h2><p><strong>Materia:</strong> Cálculo Diferencial (CDIF)</p><p><strong>Horario:</strong> Lunes a Viernes, 12:00 - 13:00</p><p><strong>Salón:</strong> Y07/107</p><p><strong>Grupo:</strong> F-01/CO</p><p><strong>Profesor:</strong> (No especificado)</p></div></div>
-    <div id="geoaModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('geoaModal')">&times;</span><h2 class="text-2xl font-bold text-red-500 mb-4">Geometría Analítica</h2><p><strong>Materia:</strong> Geometría Analítica (GEOA)</p><p><strong>Horario:</strong> Lunes a Viernes, 13:00 - 14:00</p><p><strong>Salón:</strong> Y07/107</p><p><strong>Grupo:</strong> F-01/CO</p><p><strong>Profesor:</strong> (No especificado)</p></div></div>
-    <div id="metprogModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('metprogModal')">&times;</span><h2 class="text-2xl font-bold text-purple-500 mb-4">Metodología de la Programación</h2><p><strong>Materia:</strong> Metodología de la Programación (METPROG)</p><p><strong>Horario:</strong> Lunes a Viernes, 14:00 - 15:00</p><p><strong>Salón:</strong> Y07/107</p><p><strong>Grupo:</strong> F-01/CO</p><p><strong>Profesor:</strong> (No especificado)</p></div></div>
-    <div id="leiModal" class="modal"><div class="modal-content"><span class="close-button" onclick="closeModal('leiModal')">&times;</span><h2 class="text-2xl font-bold text-orange-500 mb-4">Liderazgo, Emprendimiento e Innovación</h2><p><strong>Materia:</strong> Liderazgo, Emprendimiento e Innovación (LEI)</p><p><strong>Modalidad:</strong> No Escolarizada (En línea)</p><p><strong>Grupo:</strong> 014</p><p><strong>Profesor:</strong> (No especificado)</p></div></div>
-
     <script>
-        function openModal(modalId) { document.getElementById(modalId).style.display = "block"; }
-        function closeModal(modalId) { document.getElementById(modalId).style.display = "none"; }
-        window.onclick = function(event) {
-            const modals = document.getElementsByClassName('modal');
-            for (let i = 0; i < modals.length; i++) {
-                if (event.target == modals[i]) {
-                    modals[i].style.display = "none";
+        // --- EFECTO DE PARTÍCULAS ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray;
+
+        const particleColors = ['#e0b0ff', '#c56eff', '#a04dff'];
+
+        // Clase para una partícula individual
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.directionX = directionX;
+                this.directionY = directionY;
+                this.size = size;
+                this.color = color;
+            }
+            // Dibujar la partícula
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            // Mover la partícula y mantenerla dentro del lienzo
+            update() {
+                if (this.x > canvas.width || this.x < 0) {
+                    this.directionX = -this.directionX;
                 }
+                if (this.y > canvas.height || this.y < 0) {
+                    this.directionY = -this.directionY;
+                }
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
             }
         }
+
+        // Crear el array de partículas
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 0.4) - 0.2;
+                let directionY = (Math.random() * 0.4) - 0.2;
+                let color = particleColors[Math.floor(Math.random() * particleColors.length)];
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
+
+        // Bucle de animación para las partículas
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+        }
+        
+        // Ajustar el canvas si cambia el tamaño de la ventana
+        window.addEventListener('resize', () => {
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+            initParticles();
+        });
+
+        initParticles();
+        animateParticles();
+
+
+        // --- EFECTO PARALLAX EN SCROLL ---
+        const kuromi1 = document.getElementById('kuromi1');
+        const kuromi2 = document.getElementById('kuromi2');
+        const kuromi3 = document.getElementById('kuromi3');
+        const kuromi4 = document.getElementById('kuromi4');
+
+        window.addEventListener('scroll', () => {
+            let scrollY = window.scrollY;
+            
+            // Mover cada imagen a una velocidad diferente para el efecto de profundidad
+            kuromi1.style.transform = `translateY(${scrollY * 0.3}px)`;
+            kuromi2.style.transform = `translateY(${scrollY * 0.5}px) scaleX(-1)`;
+            kuromi3.style.transform = `translateY(${scrollY * 0.2}px)`;
+            kuromi4.style.transform = `translateY(${scrollY * 0.6}px)`;
+        });
+
+
+        // --- ANIMACIÓN DE APARICIÓN AL HACER SCROLL ---
+        const letterSection = document.querySelector('.letter-section');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.2 // Se activa cuando el 20% del elemento es visible
+        });
+
+        observer.observe(letterSection);
+
     </script>
 </body>
 </html>
-
